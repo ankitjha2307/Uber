@@ -147,6 +147,74 @@ curl -X POST http://localhost:4000/users/login \
   }'
 ```
 
+---
+
+# User Logout API Documentation
+
+## Endpoint
+
+`GET /users/logout`
+
+## Description
+
+Logs out the authenticated user by blacklisting their JWT token for 24 hours. Requires authentication.
+
+## Request
+
+- No request body required.
+- JWT token must be provided in the cookie or `Authorization` header.
+
+## Responses
+
+- **200 OK**
+  - Logout successful.
+  ```json
+  {
+    "message": "Logged out successfully"
+  }
+  ```
+
+- **401 Unauthorized**
+  - If the user is not authenticated or token is missing/invalid.
+
+---
+
+# User Profile API Documentation
+
+## Endpoint
+
+`GET /users/profile`
+
+## Description
+
+Returns the profile information of the authenticated user. Requires authentication.
+
+## Request
+
+- No request body required.
+- JWT token must be provided in the cookie or `Authorization` header.
+
+## Responses
+
+- **200 OK**
+  - Returns the user profile data.
+  ```json
+  {
+    "_id": "user_id",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com"
+    // other user fields
+  }
+  ```
+
+- **401 Unauthorized**
+  - If the user is not authenticated or token is missing/invalid.
+
+---
+
 ## Related Files
 
 - [routes/user.routes.js](routes/user.routes.js)
