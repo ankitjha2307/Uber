@@ -215,9 +215,112 @@ Returns the profile information of the authenticated user. Requires authenticati
 
 ---
 
+# Captain Registration API Documentation
+
+## Endpoint
+
+`POST /captain/register`
+
+## Description
+
+Registers a new captain (driver) in the system. Requires personal details and vehicle information.
+
+## Request Body
+
+Send a JSON object with the following structure:
+
+```json
+{
+  "fullname": {
+    "firstname": "Jane",
+    "lastname": "Smith"
+  },
+  "email": "jane.smith@example.com",
+  "password": "yourpassword",
+  "vehicle": {
+    "color": "Red",
+    "plate": "ABC123",
+    "vehicleType": "car",
+    "capacity": 4
+  }
+}
+```
+
+- `fullname.firstname` (string, required): First name, at least 3 characters.
+- `fullname.lastname` (string, optional): Last name.
+- `email` (string, required): Valid email address.
+- `password` (string, required): At least 6 characters.
+- `vehicle.color` (string, required): Vehicle color, at least 3 characters.
+- `vehicle.plate` (string, required): Vehicle plate, at least 3 characters.
+- `vehicle.vehicleType` (string, required): Type of vehicle (`car`, `bike`, or `auto`).
+- `vehicle.capacity` (number, required): Vehicle capacity.
+
+## Responses
+
+- **201 Created**
+
+  - Registration successful.
+  - Returns a JSON object containing the authentication token and captain data.
+
+  ```json
+  {
+    "token": "<jwt_token>",
+    "captain": {
+      "_id": "captain_id",
+      "fullname": {
+        "firstname": "Jane",
+        "lastname": "Smith"
+      },
+      "email": "jane.smith@example.com",
+      "vehicle": {
+        "color": "Red",
+        "plate": "ABC123",
+        "vehicleType": "car",
+        "capacity": 4
+      }
+      // other captain fields
+    }
+  }
+  ```
+
+- **400 Bad Request**
+  - Validation failed or captain already exists.
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Please enter a valid email address",
+        "param": "email",
+        "location": "body"
+      }
+      // other errors
+    ]
+    // OR
+    "message": "Captain already exists"
+  }
+  ```
+
+## Example Request
+
+```sh
+curl -X POST http://localhost:4000/captain/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullname": { "firstname": "Jane", "lastname": "Smith" },
+    "email": "jane.smith@example.com",
+    "password": "yourpassword",
+    "vehicle": {
+      "color": "Red",
+      "plate": "ABC123",
+      "vehicleType": "car",
+      "capacity": 4
+    }
+  }'
+```
+
 ## Related Files
 
-- [routes/user.routes.js](routes/user.routes.js)
-- [controllers/user.controller.js](controllers/user.controller.js)
-- [models/user.model.js](models/user.model.js)
-- [service/user.service.js](service/user.service.js)
+- [routes/captain.routes.js](routes/captain.routes.js)
+- [controllers/captian.controller.js](controllers/captian.controller.js)
+- [models/captian.model.js](models/captian.model.js)
+- [service/captian.service.js](service/captian.service.js)
