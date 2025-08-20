@@ -22,7 +22,7 @@ module.exports.createCaptian = async ({
     throw new Error("All fields are required");
   }
 
-  const captain = captianModel({
+  const captain = new captianModel({
     fullname: {
       firstname,
       lastname,
@@ -37,5 +37,6 @@ module.exports.createCaptian = async ({
     },
   });
 
+  await captain.save(); // ✅ persist to DB
   return captain;
 };
