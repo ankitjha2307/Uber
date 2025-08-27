@@ -114,7 +114,9 @@ Send a JSON object with the following structure:
   ```
 
 - **400 Bad Request**
+
   - Validation failed. Returns an array of error messages.
+
   ```json
   {
     "errors": [
@@ -167,7 +169,9 @@ Logs out the authenticated user by blacklisting their JWT token for 24 hours. Re
 ## Responses
 
 - **200 OK**
+
   - Logout successful.
+
   ```json
   {
     "message": "Logged out successfully"
@@ -197,7 +201,9 @@ Returns the profile information of the authenticated user. Requires authenticati
 ## Responses
 
 - **200 OK**
+
   - Returns the user profile data.
+
   ```json
   {
     "_id": "user_id",
@@ -258,6 +264,7 @@ Registers a new captain (driver) in the system. Requires personal details and ve
 ### Responses
 
 - **201 Created**
+
   ```json
   {
     "token": "<jwt_token>",
@@ -338,6 +345,7 @@ Authenticates a captain with email and password. Returns a JWT token and captain
 ### Responses
 
 - **200 OK**
+
   ```json
   {
     "token": "<jwt_token>",
@@ -393,6 +401,7 @@ Returns the profile information of the authenticated captain. Requires authentic
 ### Responses
 
 - **200 OK**
+
   ```json
   {
     "_id": "captain_id",
@@ -436,6 +445,7 @@ Logs out the authenticated captain by blacklisting their JWT token for 24 hours.
 ### Responses
 
 - **200 OK**
+
   ```json
   {
     "message": "Logged out successfully"
@@ -451,9 +461,120 @@ Logs out the authenticated captain by blacklisting their JWT token for 24 hours.
 
 ---
 
+# Maps API Documentation
+
+## Get Coordinates from Address
+
+### Endpoint
+
+`GET /maps/get-coordinates?address=<address>`
+
+### Description
+
+Returns the latitude (`lat`) and longitude (`lng`) coordinates for a given address using the Google Maps Geocoding API.
+
+### Query Parameters
+
+- `address` (string, required): The address to geocode.
+
+### Responses
+
+- **200 OK**
+  ```json
+  {
+    "lat": 37.4224764,
+    "lng": -122.0842499
+  }
+  ```
+- **400 Bad Request**
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Invalid value",
+        "param": "address",
+        "location": "query"
+      }
+    ]
+  }
+  ```
+- **404 Not Found**
+  ```json
+  {
+    "message": "Unable to fetch coordinates: ZERO_RESULTS"
+  }
+  ```
+
+---
+
+## Get Distance and Time Between Two Locations
+
+### Endpoint
+
+`GET /maps/get-ditance-time?origin=<origin>&destination=<destination>`
+
+### Description
+
+Returns the distance and estimated travel time between two locations using the Google Maps Distance Matrix API.
+
+### Query Parameters
+
+- `origin` (string, required): The starting address or location.
+- `destination` (string, required): The destination address or location.
+
+### Responses
+
+- **200 OK**
+  ```json
+  {
+    "distance": {
+      "text": "5.6 km",
+      "value": 5600
+    },
+    "duration": {
+      "text": "12 mins",
+      "value": 720
+    },
+    "status": "OK"
+  }
+  ```
+- **400 Bad Request**
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Invalid value",
+        "param": "origin",
+        "location": "query"
+      },
+      {
+        "msg": "Invalid value",
+        "param": "destination",
+        "location": "query"
+      }
+    ]
+  }
+  ```
+- **404 Not Found**
+  ```json
+  {
+    "message": "No routes found"
+  }
+  ```
+- **500 Internal Server Error**
+  ```json
+  {
+    "message": "Internal server error"
+  }
+  ```
+
+---
+
 ## Related Files
 
 - [routes/captain.routes.js](routes/captain.routes.js)
 - [controllers/captian.controller.js](controllers/captian.controller.js)
 - [models/captian.model.js](models/captian.model.js)
 - [service/captian.service.js](service/captian.service.js)
+- [routes/maps.routes.js](routes/maps.routes.js)
+- [controllers/map.controller.js](controllers/map.controller.js)

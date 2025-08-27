@@ -9,4 +9,11 @@ router.get(
   mapcontroller.getCoordinate
 );
 
+router.get(
+  "/get-ditance-time",
+  query("origin").isString().isLength({ min: 3 }),
+  query("destination").isString().isLength({ min: 3 }),
+  mapcontroller.getDistanceTime
+);
+
 module.exports = router;
