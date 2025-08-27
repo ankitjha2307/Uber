@@ -49,8 +49,32 @@ async function getDistanceTime(origin, destination) {
   }
 }
 
+async function getAutoCompleteSuggestions(input) {
+  if (!input) {
+    throw new Error("query is Required");
+  }
+
+  const apiKey = process.env.GOOGLE_MAP_API;
+  const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+    input
+  )}&key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    if (response.data.status === "OK") {
+      return response.data.predictions; // ✅ Correct key
+    } else {
+      throw new Error("Unabel to Fetch Data");
+    }
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
 // ✅ Export both functions properly
 module.exports = {
   getCoordinatesFromAddress,
   getDistanceTime,
+  getAutoCompleteSuggestions,
 };

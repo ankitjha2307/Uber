@@ -16,4 +16,10 @@ router.get(
   mapcontroller.getDistanceTime
 );
 
+router.get(
+  "/get-suggestions",
+  query("input").isString().isLength({ min: 3 }),
+  mapcontroller.getAutoCompleteSuggestions
+);
+
 module.exports = router;
