@@ -568,6 +568,52 @@ Returns the distance and estimated travel time between two locations using the G
   }
   ```
 
+## Get Address Suggestions (Autocomplete)
+
+### Endpoint
+
+`GET /maps/get-suggestions?input=<input>`
+
+### Description
+
+Returns address or place suggestions based on the input string using the Google Maps Places Autocomplete API.
+
+### Query Parameters
+
+- `input` (string, required): The partial address or place name to get suggestions for.
+
+### Responses
+
+- **200 OK**
+  ```json
+  [
+    {
+      "description": "1600 Amphitheatre Parkway, Mountain View, CA, USA",
+      "place_id": "ChIJ2eUgeAK6j4ARbn5u_wAGqWA"
+      // other fields...
+    }
+    // more suggestions...
+  ]
+  ```
+- **400 Bad Request**
+  ```json
+  {
+    "errors": [
+      {
+        "msg": "Invalid value",
+        "param": "input",
+        "location": "query"
+      }
+    ]
+  }
+  ```
+- **500 Internal Server Error**
+  ```json
+  {
+    "message": "Unabel to Fetch Data"
+  }
+  ```
+
 ---
 
 ## Related Files
@@ -578,3 +624,7 @@ Returns the distance and estimated travel time between two locations using the G
 - [service/captian.service.js](service/captian.service.js)
 - [routes/maps.routes.js](routes/maps.routes.js)
 - [controllers/map.controller.js](controllers/map.controller.js)
+- [routes/maps.routes.js](routes/maps.routes.js)
+- [controllers/map.controller.js](controllers/map.controller.js)
+
+---
