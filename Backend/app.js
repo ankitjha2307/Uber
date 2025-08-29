@@ -8,6 +8,7 @@ const userRoutes = require("./routes/user.routes");
 const captianRoutes = require("./routes/captain.routes");
 const cookieParser = require("cookie-parser");
 const mapRoutes = require("./routes/maps.routes"); // ✅ fixed typo
+const rideRoutes = require("./routes/rides.routes");
 
 connectToDb();
 
@@ -23,5 +24,6 @@ app.get("/", (req, res) => {
 app.use("/users", userRoutes);
 app.use("/captains", captianRoutes);
 app.use("/maps", mapRoutes); // ✅ mount map routes
+app.use("/rides", rideRoutes);
 
 module.exports = app;
