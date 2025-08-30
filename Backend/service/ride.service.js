@@ -1,6 +1,7 @@
 const rideModel = require("../models/ride.model");
 const { route } = require("../routes/rides.routes");
 const mapService = require("../service/maps.service");
+const crypto = require("crypto");
 
 async function getFare(pickup, destination) {
   if (!pickup || !destination) {
@@ -46,24 +47,39 @@ async function getFare(pickup, destination) {
   return fares;
 }
 
+function getOtp(num) {
+  function generateOtp(num) {
+    const otp = crypto
+      .randomInt(Math.pow(10, num - 1), Math.pow(10, num))
+      .toString();
+    return otp;
+  }
+  return generateOtp(num);
+}
+
 module.exports.createRide = async ({
-  user,
+  captain,
   pickup,
   destination,
   vehicleType,
 }) => {
-  if (!user || !destination || !pickup || !vehicleType) {
+  if (!captain || !destination || !pickup || !vehicleType) {
     throw new Error("All fields are required");
   }
 
   const fare = await getFare(pickup, destination);
 
-  const ride = rideModel.create({
-    user,
+  const otp = getOtp(4);
+  console.log("Generated OTP:", otp);
+
+  const ride = await rideModel.create({
+    captain, // ✅ schema expects this
     pickup,
     destination,
+    otp, // ✅ required field
     fare: fare[vehicleType],
   });
 
   return ride;
 };
+eh;

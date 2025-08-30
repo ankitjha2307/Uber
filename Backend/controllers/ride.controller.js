@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const rideModel = require("../models/ride.model");
 const mapService = require("../service/maps.service");
 
@@ -31,6 +32,13 @@ async function getFare(pickup, destination) {
   };
 }
 
+// 🔑 OTP generator
+function generateOtp(length = 6) {
+  return crypto
+    .randomInt(Math.pow(10, length - 1), Math.pow(10, length))
+    .toString();
+}
+
 exports.createRide = async (req, res, next) => {
   try {
     const { pickup, destination, vehicleType } = req.body;
@@ -47,11 +55,13 @@ exports.createRide = async (req, res, next) => {
     }
 
     const fares = await getFare(pickup, destination);
+    const otp = generateOtp(4); // ✅ generate OTP
 
     const ride = await rideModel.create({
       user: req.user._id,
       pickup,
       destination,
+      otp, // ✅ include OTP
       fare: fares[vehicleType],
     });
 

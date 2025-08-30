@@ -1,8 +1,8 @@
-// models/ride.model.js
 const mongoose = require("mongoose");
 
 const rideSchema = new mongoose.Schema({
-  captain: { type: mongoose.Schema.Types.ObjectId, ref: "Captain" },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // 👈 passenger
+  captain: { type: mongoose.Schema.Types.ObjectId, ref: "Captain" }, // 👈 driver (assigned later)
   pickup: { type: String, required: true },
   destination: { type: String, required: true },
   fare: { type: Number, required: true },
@@ -16,6 +16,7 @@ const rideSchema = new mongoose.Schema({
   paymentID: { type: String },
   orderID: { type: String },
   signature: { type: String },
+  otp: { type: String, select: false, required: true }, // ✅ required OTP
 });
 
 module.exports = mongoose.model("Ride", rideSchema);
