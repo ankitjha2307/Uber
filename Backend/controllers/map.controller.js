@@ -10,7 +10,6 @@ module.exports.getCoordinate = async (req, res, next) => {
   const { address } = req.query;
 
   try {
-    // ✅ now this matches exactly with the export
     const coordinates = await mapsservice.getCoordinatesFromAddress(address);
     res.status(200).json(coordinates);
   } catch (error) {
@@ -44,12 +43,12 @@ module.exports.getAutoCompleteSuggestions = async (req, res, next) => {
     }
 
     const { input } = req.query;
+    const predictions = await mapsservice.getAutoCompleteSuggestions(input);
 
-    const suggestions = await mapsservice.getAutoCompleteSuggestions(input);
-
-    res.status(200).json(suggestions);
+    // ✅ wrap inside { predictions } so frontend can always use res.data.predictions
+    res.status(200).json({ predictions });
   } catch (err) {
     console.log(err);
-    throw err;
+    res.status(500).json({ message: "Internal server error" });
   }
 };
