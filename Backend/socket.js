@@ -22,6 +22,10 @@ function initializeSocket(server) {
     socket.on("join", async (data) => {
       const { userId, userType } = data;
 
+      console.log(
+        `User ${userId} (${userType}) joined with socket ${socket.id}`
+      );
+
       if (userType === "user") {
         await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
       } else if (userType === "captain") {

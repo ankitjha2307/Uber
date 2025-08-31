@@ -29,6 +29,7 @@ const captianSchema = new mongoose.Schema({
   },
   socketId: {
     type: String,
+    default: null,
   },
 
   status: {
