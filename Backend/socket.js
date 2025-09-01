@@ -34,17 +34,17 @@ function initializeSocket(server) {
     });
 
     socket.on("update-location-captain", async (data) => {
+      console.log("Received location:", data);
+
       const { userId, location } = data;
 
-      if (!location || !location.ltd || !location.lng) {
-        return socket.emit("error", { message: "Invalid location data" });
+      if (!location || isNaN(location.ltd) || isNaN(location.lng)) {
+        console.error("Invalid location received:", location);
+        return;
       }
 
-      await captianModel.findByIdAndUpdate(userId, {
-        location: {
-          ltd: location.ltd,
-          lng: location.lng,
-        },
+      await Captain.findByIdAndUpdate(userId, {
+        $set: { location },
       });
     });
 

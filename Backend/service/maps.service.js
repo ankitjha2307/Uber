@@ -44,12 +44,13 @@ async function getDistanceTime(origin, destination) {
       throw new Error("No routes found");
     }
 
-    return response.data.rows[0].elements[0];
+    return element;
   } else {
     throw new Error("Unable to fetch the distance: " + response.data.status);
   }
 }
 
+// Autocomplete suggestions
 async function getAutoCompleteSuggestions(input) {
   if (!input) {
     throw new Error("query is Required");
@@ -60,29 +61,28 @@ async function getAutoCompleteSuggestions(input) {
     input
   )}&key=${apiKey}`;
 
-  try {
-    const response = await axios.get(url);
-    if (response.data.status === "OK") {
-      return response.data.predictions; // ✅ Correct key
-    } else {
-      throw new Error("Unabel to Fetch Data");
-    }
-  } catch (err) {
-    console.log(err);
-    throw err;
+  const response = await axios.get(url);
+
+  if (response.data.status === "OK") {
+    return response.data.predictions;
+  } else {
+    throw new Error("Unable to fetch data: " + response.data.status);
   }
 }
 
-async function getCaptainsInTheRadius(ltd, lng, radius) {
-  const captian = await captianModel.find({
+// Find captains near a location
+async function getCaptainsInTheRadius(lat, lng, radius) {
+  if (!lat || !lng || !radius) {
+    throw new Error("lat, lng and radius are required");
+  }
+
+  return await captianModel.find({
     location: {
       $geoWithin: {
-        $centerSphere: [[ltd, lng], radius / 6371],
+        $centerSphere: [[lng, lat], radius / 6371], // Note: [lng, lat] order for MongoDB
       },
     },
   });
-
-  return captian;
 }
 
 module.exports = {

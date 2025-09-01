@@ -2,6 +2,7 @@ const { validationResult } = require("express-validator");
 const rideModel = require("../models/ride.model");
 const { getFare } = require("../service/ride.service");
 const crypto = require("crypto");
+const mapService = require("../service/maps.service");
 
 function generateOtp(length = 4) {
   return crypto
@@ -17,20 +18,51 @@ exports.createRide = async (req, res, next) => {
 
   try {
     const { pickup, destination, vehicleType } = req.body;
+
+    // Get fare
     const fares = await getFare(pickup, destination);
 
+    // Get coordinates
+    const pickupCoordinates = await mapService.getCoordinatesFromAddress(
+      pickup
+    );
+    const destinationCoordinates = await mapService.getCoordinatesFromAddress(
+      destination
+    );
+
+    // Search for captains within 5 km
+    const radius = 2; // km
+    const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
+      pickupCoordinates.lat,
+      pickupCoordinates.lng,
+      radius
+    );
+
+    console.log("Nearby Captains:", captainsInTheRadius);
+
+    // Validate vehicle type
     if (!fares[vehicleType]) {
       return res
         .status(400)
         .json({ error: "Invalid vehicle type for this route" });
     }
 
+    // Generate OTP
     const otp = generateOtp();
 
+    // Create ride
     const ride = await rideModel.create({
       user: req.user._id,
-      pickup,
-      destination,
+      pickup: {
+        address: pickup,
+        lat: pickupCoordinates.lat,
+        lng: pickupCoordinates.lng,
+      },
+      destination: {
+        address: destination,
+        lat: destinationCoordinates.lat,
+        lng: destinationCoordinates.lng,
+      },
       otp,
       fare: fares[vehicleType],
     });
