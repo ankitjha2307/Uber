@@ -3,6 +3,7 @@ const rideModel = require("../models/ride.model");
 const { getFare } = require("../service/ride.service");
 const crypto = require("crypto");
 const mapService = require("../service/maps.service");
+const { sendMessageToSocket } = require("../socket");
 
 function generateOtp(length = 4) {
   return crypto
@@ -30,16 +31,6 @@ exports.createRide = async (req, res, next) => {
       destination
     );
 
-    // Search for captains within 5 km
-    const radius = 2; // km
-    const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
-      pickupCoordinates.lat,
-      pickupCoordinates.lng,
-      radius
-    );
-
-    console.log("Nearby Captains:", captainsInTheRadius);
-
     // Validate vehicle type
     if (!fares[vehicleType]) {
       return res
@@ -50,7 +41,7 @@ exports.createRide = async (req, res, next) => {
     // Generate OTP
     const otp = generateOtp();
 
-    // Create ride
+    // ✅ Create ride first
     const ride = await rideModel.create({
       user: req.user._id,
       pickup: {
@@ -65,6 +56,25 @@ exports.createRide = async (req, res, next) => {
       },
       otp,
       fare: fares[vehicleType],
+      status: "pending",
+    });
+
+    console.log("✅ New Ride Created:", ride); // ✅ backend terminal log
+
+    // Search for captains within 2 km radius
+    const radius = 2; // km
+    const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
+      pickupCoordinates.lat,
+      pickupCoordinates.lng,
+      radius
+    );
+
+    // Send ride details to all nearby captains
+    captainsInTheRadius.forEach((captain) => {
+      sendMessageToSocket(captain.socketId, {
+        event: "new-ride",
+        data: { ride },
+      });
     });
 
     res.status(201).json(ride);

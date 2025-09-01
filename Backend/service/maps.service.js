@@ -71,15 +71,15 @@ async function getAutoCompleteSuggestions(input) {
 }
 
 // Find captains near a location
-async function getCaptainsInTheRadius(lat, lng, radius) {
-  if (!lat || !lng || !radius) {
+async function getCaptainsInTheRadius(ltd, lng, radius) {
+  if (!ltd || !lng || !radius) {
     throw new Error("lat, lng and radius are required");
   }
 
   return await captianModel.find({
     location: {
       $geoWithin: {
-        $centerSphere: [[lng, lat], radius / 6371], // Note: [lng, lat] order for MongoDB
+        $centerSphere: [[lng, ltd], radius / 6371], // Note: [lng, lat] order for MongoDB
       },
     },
   });

@@ -1,6 +1,7 @@
 const { Server } = require("socket.io");
 const userModel = require("./models/user.model");
 const captianModel = require("./models/captian.model");
+const Captain = require("./models/captian.model");
 
 let io = null;
 
@@ -43,9 +44,14 @@ function initializeSocket(server) {
         return;
       }
 
-      await Captain.findByIdAndUpdate(userId, {
-        $set: { location },
-      });
+      // Update DB and fetch captain
+      const captain = await Captain.findByIdAndUpdate(
+        userId,
+        { $set: { location } },
+        { new: true }
+      );
+
+      console.log("Updated Captain:", captain); // 👈 Captain with updated location
     });
 
     socket.on("disconnect", () => {
@@ -61,6 +67,8 @@ function initializeSocket(server) {
  * @param {any} message
  */
 function sendMessageToSocket(socketId, event, message) {
+  console.log(`Sending Messeage to ${socketId}`, message);
+
   if (io) {
     io.to(socketId).emit(event, message);
   }
