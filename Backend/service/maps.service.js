@@ -1,4 +1,5 @@
 const axios = require("axios");
+const captianModel = require("../models/captian.model");
 
 // Get coordinates from an address
 async function getCoordinatesFromAddress(address) {
@@ -72,9 +73,21 @@ async function getAutoCompleteSuggestions(input) {
   }
 }
 
-// ✅ Export both functions properly
+async function getCaptainsInTheRadius(ltd, lng, radius) {
+  const captian = await captianModel.find({
+    location: {
+      $geoWithin: {
+        $centerSphere: [[ltd, lng], radius / 6371],
+      },
+    },
+  });
+
+  return captian;
+}
+
 module.exports = {
   getCoordinatesFromAddress,
   getDistanceTime,
   getAutoCompleteSuggestions,
+  getCaptainsInTheRadius,
 };
