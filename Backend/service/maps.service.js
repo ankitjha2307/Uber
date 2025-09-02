@@ -1,7 +1,7 @@
 const axios = require("axios");
 const captianModel = require("../models/captian.model");
 
-// Get coordinates from an address
+// Get coordinates from address
 async function getCoordinatesFromAddress(address) {
   const apiKey = process.env.GOOGLE_MAP_API;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
@@ -10,26 +10,18 @@ async function getCoordinatesFromAddress(address) {
 
   const response = await axios.get(url);
 
-  if (
-    response.data.status === "OK" &&
-    response.data.results &&
-    response.data.results.length > 0
-  ) {
+  if (response.data.status === "OK" && response.data.results?.length > 0) {
     const location = response.data.results[0].geometry.location;
-    return {
-      lat: location.lat,
-      lng: location.lng,
-    };
-  } else {
-    throw new Error("Unable to fetch coordinates: " + response.data.status);
+    return { lat: location.lat, lng: location.lng };
   }
+
+  throw new Error("Unable to fetch coordinates: " + response.data.status);
 }
 
-// Get distance & time between two points
+// Get distance & time between origin and destination
 async function getDistanceTime(origin, destination) {
-  if (!origin || !destination) {
-    throw new Error("Origin and Destination are required");
-  }
+  if (!origin || !destination)
+    throw new Error("Origin and Destination required");
 
   const apiKey = process.env.GOOGLE_MAP_API;
   const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(
@@ -40,46 +32,21 @@ async function getDistanceTime(origin, destination) {
 
   if (response.data.status === "OK") {
     const element = response.data.rows[0].elements[0];
-    if (element.status === "ZERO_RESULTS") {
-      throw new Error("No routes found");
-    }
-
-    return element;
-  } else {
-    throw new Error("Unable to fetch the distance: " + response.data.status);
+    if (element.status === "ZERO_RESULTS") throw new Error("No routes found");
+    return element; // { distance: {...}, duration: {...} }
   }
+
+  throw new Error("Unable to fetch distance/time: " + response.data.status);
 }
 
-// Autocomplete suggestions
-async function getAutoCompleteSuggestions(input) {
-  if (!input) {
-    throw new Error("query is Required");
-  }
-
-  const apiKey = process.env.GOOGLE_MAP_API;
-  const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-    input
-  )}&key=${apiKey}`;
-
-  const response = await axios.get(url);
-
-  if (response.data.status === "OK") {
-    return response.data.predictions;
-  } else {
-    throw new Error("Unable to fetch data: " + response.data.status);
-  }
-}
-
-// Find captains near a location
-async function getCaptainsInTheRadius(ltd, lng, radius) {
-  if (!ltd || !lng || !radius) {
-    throw new Error("lat, lng and radius are required");
-  }
+// Find captains within radius
+async function getCaptainsInTheRadius(lat, lng, radius) {
+  if (!lat || !lng || !radius) throw new Error("lat, lng and radius required");
 
   return await captianModel.find({
     location: {
       $geoWithin: {
-        $centerSphere: [[lng, ltd], radius / 6371], // Note: [lng, lat] order for MongoDB
+        $centerSphere: [[lng, lat], radius / 6371],
       },
     },
   });
@@ -87,7 +54,6 @@ async function getCaptainsInTheRadius(ltd, lng, radius) {
 
 module.exports = {
   getCoordinatesFromAddress,
-  getDistanceTime,
-  getAutoCompleteSuggestions,
+  getDistanceTime, // ✅ export it
   getCaptainsInTheRadius,
 };

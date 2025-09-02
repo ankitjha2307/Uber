@@ -1,7 +1,6 @@
 const { Server } = require("socket.io");
 const userModel = require("./models/user.model");
-const captianModel = require("./models/captian.model");
-const Captain = require("./models/captian.model");
+const Captain = require("./models/captian.model"); // renamed for clarity
 
 let io = null;
 
@@ -18,59 +17,62 @@ function initializeSocket(server) {
   });
 
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+    console.log("🔌 Socket connected:", socket.id);
 
-    socket.on("join", async (data) => {
-      const { userId, userType } = data;
-
+    // Handle join event
+    socket.on("join", async ({ userId, userType }) => {
       console.log(
         `User ${userId} (${userType}) joined with socket ${socket.id}`
       );
 
-      if (userType === "user") {
-        await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
-      } else if (userType === "captain") {
-        await captianModel.findByIdAndUpdate(userId, { socketId: socket.id });
+      try {
+        if (userType === "user") {
+          await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
+        } else if (userType === "captain") {
+          await Captain.findByIdAndUpdate(userId, { socketId: socket.id });
+        }
+      } catch (err) {
+        console.error("Error saving socketId:", err);
       }
     });
 
-    socket.on("update-location-captain", async (data) => {
-      console.log("Received location:", data);
+    // Handle captain location update
+    socket.on("update-location-captain", async ({ userId, location }) => {
+      try {
+        const { lat, lng } = location;
+        if (lat == null || lng == null) {
+          console.warn(" Invalid location received:", location);
+          return;
+        }
 
-      const { userId, location } = data;
-
-      if (!location || isNaN(location.ltd) || isNaN(location.lng)) {
-        console.error("Invalid location received:", location);
-        return;
+        await Captain.findByIdAndUpdate(userId, { location: { lat, lng } });
+        console.log(" Captain location updated:", { userId, lat, lng });
+      } catch (err) {
+        console.error("Error updating captain location:", err);
       }
-
-      // Update DB and fetch captain
-      const captain = await Captain.findByIdAndUpdate(
-        userId,
-        { $set: { location } },
-        { new: true }
-      );
-
-      console.log("Updated Captain:", captain); // 👈 Captain with updated location
     });
 
     socket.on("disconnect", () => {
-      console.log("Socket disconnected:", socket.id);
+      console.log(" Socket disconnected:", socket.id);
     });
   });
 }
 
 /**
- * Sends a message to a specific socket by ID.
+ * Send a message to a specific socket ID
  * @param {string} socketId
  * @param {string} event
  * @param {any} message
  */
 function sendMessageToSocket(socketId, event, message) {
-  console.log(`Sending Messeage to ${socketId}`, message);
+  if (!io) return console.error("Socket.io not initialized");
 
-  if (io) {
-    io.to(socketId).emit(event, message);
+  const target = io.sockets.sockets.get(socketId);
+  if (target) {
+    console.log(`📨 Sending message to ${socketId}:`, message);
+    target.emit(event, message);
+  } else {
+    console.warn("Socket not found:", socketId);
   }
 }
 

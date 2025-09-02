@@ -4,6 +4,7 @@ const { getFare } = require("../service/ride.service");
 const crypto = require("crypto");
 const mapService = require("../service/maps.service");
 const { sendMessageToSocket } = require("../socket");
+const { log } = require("console");
 
 function generateOtp(length = 4) {
   return crypto
@@ -13,17 +14,14 @@ function generateOtp(length = 4) {
 
 exports.createRide = async (req, res, next) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
+  if (!errors.isEmpty())
     return res.status(400).json({ errors: errors.array() });
-  }
 
   try {
     const { pickup, destination, vehicleType } = req.body;
 
-    // Get fare
     const fares = await getFare(pickup, destination);
 
-    // Get coordinates
     const pickupCoordinates = await mapService.getCoordinatesFromAddress(
       pickup
     );
@@ -31,17 +29,11 @@ exports.createRide = async (req, res, next) => {
       destination
     );
 
-    // Validate vehicle type
-    if (!fares[vehicleType]) {
-      return res
-        .status(400)
-        .json({ error: "Invalid vehicle type for this route" });
-    }
+    if (!fares[vehicleType])
+      return res.status(400).json({ error: "Invalid vehicle type" });
 
-    // Generate OTP
     const otp = generateOtp();
 
-    // ✅ Create ride first
     const ride = await rideModel.create({
       user: req.user._id,
       pickup: {
@@ -59,9 +51,9 @@ exports.createRide = async (req, res, next) => {
       status: "pending",
     });
 
-    console.log("✅ New Ride Created:", ride); // ✅ backend terminal log
+    console.log("New Ride Created", ride);
 
-    // Search for captains within 2 km radius
+    // Send ride to nearby captains
     const radius = 2; // km
     const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
       pickupCoordinates.lat,
@@ -69,7 +61,6 @@ exports.createRide = async (req, res, next) => {
       radius
     );
 
-    // Send ride details to all nearby captains
     captainsInTheRadius.forEach((captain) => {
       sendMessageToSocket(captain.socketId, {
         event: "new-ride",
