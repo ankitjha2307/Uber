@@ -54,6 +54,7 @@ exports.createRide = async (req, res, next) => {
     console.log("New Ride Created", ride);
 
     // Send ride to nearby captains
+    // Send ride to nearby captains
     const radius = 2; // km
     const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
       pickupCoordinates.lat,
@@ -62,10 +63,8 @@ exports.createRide = async (req, res, next) => {
     );
 
     captainsInTheRadius.forEach((captain) => {
-      sendMessageToSocket(captain.socketId, {
-        event: "new-ride",
-        data: { ride },
-      });
+      // ✅ FIX: pass event and message separately
+      sendMessageToSocket(captain.socketId, "new-ride", ride);
     });
 
     res.status(201).json(ride);
