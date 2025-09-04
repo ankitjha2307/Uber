@@ -81,6 +81,35 @@ exports.createRide = async (req, res, next) => {
   }
 };
 
+exports.acceptRide = async (req, res, next) => {
+  try {
+    const { rideId } = req.body;
+    if (!rideId) return res.status(400).json({ message: "rideId required" });
+
+    if (!req.captain)
+      return res.status(401).json({ message: "Captain not authorized" });
+
+    const ride = await rideModel
+      .findByIdAndUpdate(
+        rideId,
+        { status: "accepted", captain: req.captain._id },
+        { new: true }
+      )
+      .populate("user", "fullname email")
+      .populate("captain", "fullname email vehicle");
+
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+
+    // Notify user via socket
+    sendMessageToSocket(ride.user.socketId, "ride-accepted", ride);
+
+    res.status(200).json(ride);
+  } catch (err) {
+    console.error("❌ Error in acceptRide:", err);
+    next(err);
+  }
+};
+
 exports.getFare = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
