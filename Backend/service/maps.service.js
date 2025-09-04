@@ -37,16 +37,21 @@ async function getDistanceTime(origin, destination) {
   throw new Error("Unable to fetch distance/time: " + response.data.status);
 }
 
-async function getCaptainsInTheRadius(lat, lng, radius) {
-  if (!lat || !lng || !radius) throw new Error("lat, lng and radius required");
+async function getCaptainsInTheRadius(lat, lng, radiusKm) {
+  if (!lat || !lng || !radiusKm) {
+    throw new Error("lat, lng and radius required");
+  }
 
-  return await captianModel.find({
+  const result = await captianModel.find({
     location: {
       $geoWithin: {
-        $centerSphere: [[lng, lat], radius / 6371],
+        $centerSphere: [[lng, lat], radiusKm / 6371], // radius in radians
       },
     },
   });
+
+  console.log("Nearby captains:", result);
+  return result;
 }
 
 async function getAutoCompleteSuggestions(input) {

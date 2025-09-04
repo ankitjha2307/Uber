@@ -34,12 +34,16 @@ exports.createRide = async (req, res, next) => {
 
     const otp = generateOtp();
 
+    console.log(typeof pickupCoordinates.lat);
+
     const ride = await rideModel.create({
       user: req.user._id,
       pickup: {
         address: pickup,
-        lat: pickupCoordinates.lat,
-        lng: pickupCoordinates.lng,
+        location: {
+          type: "Point",
+          cooridinates: [pickupCoordinates.lat, pickupCoordinates.lng],
+        },
       },
       destination: {
         address: destination,
@@ -53,14 +57,14 @@ exports.createRide = async (req, res, next) => {
 
     console.log("New Ride Created", ride);
 
-    // Send ride to nearby captains
-    // Send ride to nearby captains
-    const radius = 2; // km
+    const radius = 5;
     const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
       pickupCoordinates.lat,
       pickupCoordinates.lng,
       radius
     );
+
+    console.log(captainsInTheRadius);
 
     captainsInTheRadius.forEach((captain) => {
       // ✅ FIX: pass event and message separately

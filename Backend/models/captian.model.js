@@ -9,7 +9,6 @@ const captianSchema = new mongoose.Schema({
       required: true,
       minlength: [3, "First name must be at least 3 characters long"],
     },
-
     lastname: {
       type: String,
       minlength: [3, "Last name must be at least 3 characters long"],
@@ -31,7 +30,6 @@ const captianSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
-
   status: {
     type: String,
     enum: ["active", "inactive"],
@@ -56,15 +54,23 @@ const captianSchema = new mongoose.Schema({
       enum: ["car", "bike", "auto"],
     },
   },
+
+  // ✅ Fixed GeoJSON location
   location: {
-    ltd: {
-      type: Number,
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
     },
-    lng: {
-      type: Number,
+    coordinates: {
+      type: [Number], // [lng, lat]
+      required: false,
     },
   },
 });
+
+// ✅ Add geospatial index for location queries
+captianSchema.index({ location: "2dsphere" });
 
 captianSchema.methods.generateAuthToken = function () {
   const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {

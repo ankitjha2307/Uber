@@ -45,7 +45,9 @@ function initializeSocket(server) {
           return;
         }
 
-        await Captain.findByIdAndUpdate(userId, { location: { lat, lng } });
+        await Captain.findByIdAndUpdate(userId, {
+          location: { type: "Point", cooridinates: [lat, lng] },
+        });
         console.log(" Captain location updated:", { userId, lat, lng });
       } catch (err) {
         console.error("Error updating captain location:", err);

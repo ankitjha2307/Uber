@@ -7,8 +7,17 @@ const rideSchema = new mongoose.Schema(
 
     pickup: {
       address: { type: String, required: true },
-      lat: { type: Number, required: true },
-      lng: { type: Number, required: true },
+      location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          required: true,
+        },
+        coordinates: {
+          type: [Number], // [longitude, latitude]
+          required: true,
+        },
+      },
     },
 
     destination: {
