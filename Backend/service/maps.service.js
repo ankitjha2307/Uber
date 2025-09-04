@@ -44,8 +44,12 @@ async function getCaptainsInTheRadius(lat, lng, radiusKm) {
 
   const result = await captianModel.find({
     location: {
-      $geoWithin: {
-        $centerSphere: [[lng, lat], radiusKm / 6371], // radius in radians
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [lng, lat], // ✅ order matters
+        },
+        $maxDistance: radiusKm * 1000, // convert km → meters
       },
     },
   });

@@ -42,7 +42,7 @@ exports.createRide = async (req, res, next) => {
         address: pickup,
         location: {
           type: "Point",
-          cooridinates: [pickupCoordinates.lat, pickupCoordinates.lng],
+          coordinates: [pickupCoordinates.lng, pickupCoordinates.lat],
         },
       },
       destination: {
@@ -57,6 +57,13 @@ exports.createRide = async (req, res, next) => {
 
     console.log("New Ride Created", ride);
 
+    const rideWithUser = await ride.populate("user", "name email phone");
+
+    const rideForCaptain = rideWithUser.toObject();
+    delete rideForCaptain.otp;
+
+    console.log("New Ride Created", rideWithUser);
+
     const radius = 5;
     const captainsInTheRadius = await mapService.getCaptainsInTheRadius(
       pickupCoordinates.lat,
@@ -64,14 +71,11 @@ exports.createRide = async (req, res, next) => {
       radius
     );
 
-    console.log(captainsInTheRadius);
-
     captainsInTheRadius.forEach((captain) => {
-      // ✅ FIX: pass event and message separately
-      sendMessageToSocket(captain.socketId, "new-ride", ride);
+      sendMessageToSocket(captain.socketId, "ride-request", rideWithUser);
     });
 
-    res.status(201).json(ride);
+    res.status(201).json(rideWithUser);
   } catch (err) {
     next(err);
   }
