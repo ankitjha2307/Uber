@@ -45,7 +45,6 @@ module.exports.getAutoCompleteSuggestions = async (req, res, next) => {
     const { input } = req.query;
     const predictions = await mapsservice.getAutoCompleteSuggestions(input);
 
-    // ✅ wrap inside { predictions } so frontend can always use res.data.predictions
     res.status(200).json({ predictions });
   } catch (err) {
     console.log(err);

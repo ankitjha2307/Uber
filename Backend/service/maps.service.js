@@ -1,7 +1,6 @@
 const axios = require("axios");
 const captianModel = require("../models/captian.model");
 
-// Get coordinates from address
 async function getCoordinatesFromAddress(address) {
   const apiKey = process.env.GOOGLE_MAP_API;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
@@ -18,7 +17,6 @@ async function getCoordinatesFromAddress(address) {
   throw new Error("Unable to fetch coordinates: " + response.data.status);
 }
 
-// Get distance & time between origin and destination
 async function getDistanceTime(origin, destination) {
   if (!origin || !destination)
     throw new Error("Origin and Destination required");
@@ -33,13 +31,12 @@ async function getDistanceTime(origin, destination) {
   if (response.data.status === "OK") {
     const element = response.data.rows[0].elements[0];
     if (element.status === "ZERO_RESULTS") throw new Error("No routes found");
-    return element; // { distance: {...}, duration: {...} }
+    return element;
   }
 
   throw new Error("Unable to fetch distance/time: " + response.data.status);
 }
 
-// Find captains within radius
 async function getCaptainsInTheRadius(lat, lng, radius) {
   if (!lat || !lng || !radius) throw new Error("lat, lng and radius required");
 
@@ -52,8 +49,26 @@ async function getCaptainsInTheRadius(lat, lng, radius) {
   });
 }
 
+async function getAutoCompleteSuggestions(input) {
+  if (!input) throw new Error("Input is required");
+
+  const apiKey = process.env.GOOGLE_MAP_API;
+  const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+    input
+  )}&key=${apiKey}`;
+
+  const response = await axios.get(url);
+
+  if (response.data.status === "OK") {
+    return response.data.predictions;
+  }
+
+  throw new Error("Unable to fetch autocomplete: " + response.data.status);
+}
+
 module.exports = {
   getCoordinatesFromAddress,
-  getDistanceTime, // ✅ export it
+  getDistanceTime,
   getCaptainsInTheRadius,
+  getAutoCompleteSuggestions,
 };
