@@ -81,32 +81,73 @@ exports.createRide = async (req, res, next) => {
   }
 };
 
-exports.acceptRide = async (req, res, next) => {
+exports.acceptRide = async (req, res) => {
   try {
-    const { rideId } = req.body;
-    if (!rideId) return res.status(400).json({ message: "rideId required" });
+    const { rideId, captainId } = req.body;
 
-    if (!req.captain)
-      return res.status(401).json({ message: "Captain not authorized" });
+    if (!rideId || !captainId)
+      return res.status(400).json({ message: "rideId & captainId required" });
 
     const ride = await rideModel
       .findByIdAndUpdate(
         rideId,
-        { status: "accepted", captain: req.captain._id },
+        { status: "accepted", captain: captainId },
         { new: true }
       )
-      .populate("user", "fullname email")
+      .populate("user", "fullname email phone socketId")
       .populate("captain", "fullname email vehicle");
 
     if (!ride) return res.status(404).json({ message: "Ride not found" });
 
-    // Notify user via socket
-    sendMessageToSocket(ride.user.socketId, "ride-accepted", ride);
+    // Notify user
+    if (ride.user?.socketId) {
+      sendMessageToSocket(ride.user.socketId, "rideAccepted", {
+        rideId: ride._id,
+        pickup: ride.pickup,
+        destination: ride.destination,
+        fare: ride.fare,
+        captain: ride.captain,
+        otp: ride.otp,
+      });
+    }
 
-    res.status(200).json(ride);
+    res.status(200).json({ message: "Ride accepted", ride });
   } catch (err) {
     console.error("❌ Error in acceptRide:", err);
-    next(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getFare = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { pickup, destination } = req.query;
+    const fares = await getFare(pickup, destination);
+    res.status(200).json(fares);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.verifyOtp = async (req, res) => {
+  try {
+    const { rideId, enteredOtp } = req.body;
+    const ride = await rideModel.findById(rideId);
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+    if (ride.otp !== enteredOtp)
+      return res.status(400).json({ message: "Invalid OTP" });
+
+    ride.status = "ongoing";
+    await ride.save();
+
+    res.status(200).json({ message: "OTP verified, ride started", ride });
+  } catch (err) {
+    console.error("❌ Error in verifyOtp:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

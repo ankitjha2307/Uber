@@ -12,7 +12,12 @@ const rideRoutes = require("./routes/rides.routes");
 
 connectToDb();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // your frontend URL
+    credentials: true, // allow cookies & authorization headers
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
