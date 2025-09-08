@@ -99,16 +99,9 @@ exports.acceptRide = async (req, res) => {
 
     if (!ride) return res.status(404).json({ message: "Ride not found" });
 
-    // Notify user
+    // ✅ Send full ride object including OTP
     if (ride.user?.socketId) {
-      sendMessageToSocket(ride.user.socketId, "rideAccepted", {
-        rideId: ride._id,
-        pickup: ride.pickup,
-        destination: ride.destination,
-        fare: ride.fare,
-        captain: ride.captain,
-        otp: ride.otp,
-      });
+      sendMessageToSocket(ride.user.socketId, "rideAccepted", ride.toObject());
     }
 
     res.status(200).json({ message: "Ride accepted", ride });
