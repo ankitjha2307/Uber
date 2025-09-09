@@ -95,7 +95,8 @@ exports.acceptRide = async (req, res) => {
         { new: true }
       )
       .populate("user", "fullname email phone socketId")
-      .populate("captain", "fullname email vehicle");
+      .populate("captain", "fullname email vehicle")
+      .select("+otp");
 
     if (!ride) return res.status(404).json({ message: "Ride not found" });
 
